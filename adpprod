@@ -4861,25 +4861,25 @@ ENDPROC
 //
 PROC(fillFdfFromIndex)
 //*******************************************************************************
-// Write a filled FDF file from the first record of a VPF index
+// Remplit le squelette FDF en substituant les 3 variables FicIndex.ligne.xx
+// par les valeurs lues dans le premier enregistrement du fichier index VPF
 //*******************************************************************************
 // Parameters
-//   InFillFdf_VpfInd    : full path to the VPF index file
-//   InFillFdf_OutputFdf : full path for the output filled FDF file
+//   InFillFdf_FdfSkel   : chemin complet du squelette FDF
+//   InFillFdf_VpfInd    : chemin complet du fichier index VPF
+//   InFillFdf_OutputFdf : chemin complet du FDF de sortie
 //   OutFillFdf_Resu     : oui/non
 //-------------------------------------------------------------------------------
 copy(OutFillFdf_Resu,"oui")
 //
-// Ouvrir le fichier index VPF
+// Lire le premier enregistrement de l'index VPF
 setin(pjFdfVpfIdx,"eclatement.tab",InFillFdf_VpfInd)
 oneof(pjFdfVpfIdx,"- SET EOF VAR -")
-// Lire l'entete et le premier enregistrement
 read(pjFdfVpfIdx,"entete")
 read(pjFdfVpfIdx,"theader")
 read(pjFdfVpfIdx,"ligne")
 read(pjFdfVpfIdx,"fonction")
 read(pjFdfVpfIdx,"calcul")
-// Verifier qu'on a des donnees
 if(pjFdfVpfIdx_eof!="0")
    {
       setin(pjFdfVpfIdx,"eclatement.tab","- NO IN -")
@@ -4889,41 +4889,18 @@ if(pjFdfVpfIdx_eof!="0")
       copy(OutFillFdf_Resu,"non")
       EXITPROC
    }
-// Ecrire le fichier FDF avec les valeurs issues du premier enregistrement
-setout(pjFdfOut,InFillFdf_OutputFdf)
-write(pjFdfOut,"%FDF-1.2\n")
-write(pjFdfOut,"1 0 obj\n")
-write(pjFdfOut,"<<\n")
-write(pjFdfOut,"/FDF\n")
-write(pjFdfOut,"<<\n")
-write(pjFdfOut,"/Fields [\n")
-write(pjFdfOut,"<< /T (Civilite) /V ("pjFdfVpfIdx.ligne.Civilite") >>\n")
-write(pjFdfOut,"<< /T (Destinataire) /V ("pjFdfVpfIdx.ligne.Destinataire") >>\n")
-write(pjFdfOut,"<< /T (NomPostal) /V ("pjFdfVpfIdx.ligne.NomPostal") >>\n")
-write(pjFdfOut,"<< /T (DateCourrier) /V ("pjFdfVpfIdx.ligne.DateCourrier") >>\n")
-write(pjFdfOut,"<< /T (Objet) /V ("pjFdfVpfIdx.ligne.Objet") >>\n")
-write(pjFdfOut,"<< /T (References) /V ("pjFdfVpfIdx.ligne.References") >>\n")
-write(pjFdfOut,"<< /T (CodeModele) /V ("pjFdfVpfIdx.ligne.CodeModele") >>\n")
-write(pjFdfOut,"<< /T (CodeVariante) /V ("pjFdfVpfIdx.ligne.CodeVariante") >>\n")
-write(pjFdfOut,"<< /T (RefGED) /V ("pjFdfVpfIdx.ligne.RefGED") >>\n")
-write(pjFdfOut,"<< /T (Application) /V ("pjFdfVpfIdx.ligne.Application") >>\n")
-write(pjFdfOut,"<< /T (Section) /V ("pjFdfVpfIdx.ligne.Section") >>\n")
-write(pjFdfOut,"<< /T (Responsable) /V ("pjFdfVpfIdx.ligne.Responsable") >>\n")
-write(pjFdfOut,"<< /T (LieuEdition) /V ("pjFdfVpfIdx.ligne.LieuEdition") >>\n")
-write(pjFdfOut,"<< /T (RefCourTech) /V ("pjFdfVpfIdx.ligne.RefCourTech") >>\n")
-write(pjFdfOut,"<< /T (ValID) /V ("pjFdfVpfIdx.ligne.ValID") >>\n")
-write(pjFdfOut,"<< /T (Quaduti) /V ("pjFdfVpfIdx.ligne.Quaduti") >>\n")
-write(pjFdfOut,"<< /T (JetonSecu) /V ("pjFdfVpfIdx.ligne.JetonSecu") >>\n")
-write(pjFdfOut,"]\n")
-write(pjFdfOut,">>\n")
-write(pjFdfOut,">>\n")
-write(pjFdfOut,"endobj\n")
-write(pjFdfOut,"trailer\n")
-write(pjFdfOut,"<< /Root 1 0 R >>\n")
-write(pjFdfOut,"%%EOF\n")
-setout(pjFdfOut,"- NO OUT -")
-// Fermer le fichier index VPF
 setin(pjFdfVpfIdx,"eclatement.tab","- NO IN -")
+//
+// Charger le squelette FDF et substituer les 3 variables
+load(pjFdfBuffer,InFillFdf_FdfSkel)
+call(pjFdfBuffer,LB_FastReplace,pjFdfBuffer,"FicIndex.ligne.NomDest",pjFdfVpfIdx.ligne.NomDest)
+call(pjFdfBuffer,LB_FastReplace,pjFdfBuffer,"FicIndex.ligne.PrenomDest",pjFdfVpfIdx.ligne.PrenomDest)
+call(pjFdfBuffer,LB_FastReplace,pjFdfBuffer,"FicIndex.ligne.NoSinistre",pjFdfVpfIdx.ligne.NoSinistre)
+//
+// Ecrire le FDF rempli
+setout(pjFdfOut,InFillFdf_OutputFdf)
+write(pjFdfOut,pjFdfBuffer)
+setout(pjFdfOut,"- NO OUT -")
 ENDPROC
 //
 //
@@ -4955,20 +4932,9 @@ if(OutCopieFichier_Resu!="oui")
       EXITPROC
    }
 //
-// Etape 2 : Copier le squelette FDF depuis /tmp/ vers RepTravail
-copy(pjFdfSkelCopy,RepTravail"/"InPrefillPj_PjName"_skel.fdf")
-copy(InCopieFichier_Source,InPrefillPj_FdfSkel)
-copy(InCopieFichier_Cible,pjFdfSkelCopy)
-gosub(GSCopieFichier)
-if(OutCopieFichier_Resu!="oui")
-   {
-      copy(InTraceExec_TypeMessage,"W")
-      copy(InTraceExec_Message,"prefillPjForm : squelette FDF introuvable ["InPrefillPj_FdfSkel"] - continue")
-      gosub(GenTraceExec)
-   }
-//
-// Etape 3 : Generer le FDF rempli depuis l'index VPF
+// Etape 2 : Generer le FDF rempli depuis le squelette et l'index VPF
 copy(pjFdfFilled,RepTravail"/"InPrefillPj_PjName"_filled.fdf")
+copy(InFillFdf_FdfSkel,InPrefillPj_FdfSkel)
 copy(InFillFdf_VpfInd,InPrefillPj_VpfInd)
 copy(InFillFdf_OutputFdf,pjFdfFilled)
 gosub(fillFdfFromIndex)
@@ -4981,7 +4947,7 @@ if(OutFillFdf_Resu!="oui")
       EXITPROC
    }
 //
-// Etape 4 : Appel pdftk fill_form -> sortie dans RepTravail/<pjname>.pdf
+// Etape 3 : Appel pdftk fill_form -> sortie dans RepTravail/<pjname>.pdf
 copy(pjPrefillOut,RepTravail"/"InPrefillPj_PjName".pdf")
 copy(pdftk_fill_params,"")
 append(pdftk_fill_params,pjFormCopy)
@@ -5010,7 +4976,7 @@ if(pjPdftk_resu!="OK")
       EXITPROC
    }
 //
-// Etape 5 : Verifier la presence du PDF de sortie
+// Etape 4 : Verifier la presence du PDF de sortie
 copy(pyGSFileExist_InFile,pjPrefillOut)
 call(pyGSFileExist_return,switchmodule,"pyGSFileExist",pyDeliveryOutils)
 copy(fexist,pyGSFileExist_Resu)
