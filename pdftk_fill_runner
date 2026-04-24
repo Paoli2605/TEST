@@ -1,0 +1,8 @@
+#!/bin/bash
+# Wrapper pdftk pour pyGSRunProcess
+# Exécute pdftk avec les paramètres passés et émet "exit code :N"
+# en dernière ligne de stdout, format attendu par pyGSRunProcess.
+pdftk "$@"
+RC=$?
+echo "exit code :${RC}"
+exit ${RC}
