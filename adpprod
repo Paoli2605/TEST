@@ -4910,7 +4910,7 @@ PROC(prefillPjForm)
 //*******************************************************************************
 // Parameters
 //   InPrefillPj_PjName   : nom de la PJ formulaire (sans chemin ni extension)
-//   InPrefillPj_FdfSkel  : chemin complet du squelette FDF dans /tmp/
+//   InPrefillPj_FdfSkel  : chemin complet du squelette FDF (OpWDDlv/FamilleDlv/common/text/<pj>.fdf)
 //   InPrefillPj_VpfInd   : chemin complet du fichier index VPF
 //   InPrefillPj_PdftKExe : chemin complet de l'executable pdftk
 //   OutPrefillPj_Resu    : oui/non
@@ -5154,7 +5154,7 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 				if(getFullPathRes_Resu=="oui")
 				{
 					copy(rspath,outgetFullPathRes)
-					copy(pdfMerge_FdfSkel,"/tmp/"ingetFullPathRes".fdf")
+					copy(pdfMerge_FdfSkel,OpWDDlv"/"FamilleDlv"/common/text/"ingetFullPathRes".fdf")
 					copy(pyGSFileExist_InFile,pdfMerge_FdfSkel)
 					call(pyGSFileExist_return,switchmodule,"pyGSFileExist",pyDeliveryOutils)
 					if(pyGSFileExist_Resu=="OK")
@@ -5202,7 +5202,7 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 					gosub(getFullPathRes)
 					if(getFullPathRes_Resu=="oui")
 						{
-							copy(pdfMerge_FdfSkel,"/tmp/"ingetFullPathRes".fdf")
+							copy(pdfMerge_FdfSkel,OpWDDlv"/"FamilleDlv"/common/text/"ingetFullPathRes".fdf")
 							copy(pyGSFileExist_InFile,pdfMerge_FdfSkel)
 							call(pyGSFileExist_return,switchmodule,"pyGSFileExist",pyDeliveryOutils)
 							if(pyGSFileExist_Resu=="OK")
@@ -5260,7 +5260,7 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 					gosub(getFullPathRes)
 					if(getFullPathRes_Resu=="oui")
 						{
-							copy(pdfMerge_FdfSkel,"/tmp/"ingetFullPathRes".fdf")
+							copy(pdfMerge_FdfSkel,OpWDDlv"/"FamilleDlv"/common/text/"ingetFullPathRes".fdf")
 							copy(pyGSFileExist_InFile,pdfMerge_FdfSkel)
 							call(pyGSFileExist_return,switchmodule,"pyGSFileExist",pyDeliveryOutils)
 							if(pyGSFileExist_Resu=="OK")
