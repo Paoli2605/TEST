@@ -4836,10 +4836,10 @@ PROC(getFullPathRes)
 //-------------------------------------------------------------------------------
 copy(getFullPathRes_Resu,"oui")
 copy(outgetFullPathRes,"")
-//===========================
-// Rechercher en priorite dans RepTravail (PJ prefilled prend le dessus)
-//===========================
-copy(wpath,RepTravail"/"ingetFullPathRes".pdf")
+//============================
+// Rechercher au niveau repertoire common
+//============================
+copy(wpath,OpWDDlv"/"FamilleDlv"/common/edoc/pdf/"ingetFullPathRes".pdf")
 copy(pyGSFileExist_InFile,wpath)
 call(pyGSFileExist_return,switchmodule,"pyGSFileExist",pyDeliveryOutils)
 copy(fexist,pyGSFileExist_Resu)
@@ -4849,26 +4849,12 @@ if(fexist=="OK")
    }
 else
    {
-      //============================
-      // Rechercher au niveau repertoire common
-      //============================
-      copy(wpath,OpWDDlv"/"FamilleDlv"/common/edoc/pdf/"ingetFullPathRes".pdf")
-      copy(pyGSFileExist_InFile,wpath)
-      call(pyGSFileExist_return,switchmodule,"pyGSFileExist",pyDeliveryOutils)
-      copy(fexist,pyGSFileExist_Resu)
-      if(fexist=="OK")
-         {
-            copy(outgetFullPathRes,wpath)
-         }
-      else
-         {
-            copy(getFullPathRes_Resu,"non")
-            copy(FlagArret,"oui")
-            copy(InTraceExec_TypeMessage,"E")
-            copy(InTraceExec_Message,"Ressource inexistant : "ingetFullPathRes)
-            copy(InTraceExec_Needed,"oui")
-            gosub(GenTraceExec)
-         }
+      copy(getFullPathRes_Resu,"non")
+      copy(FlagArret,"oui")
+      copy(InTraceExec_TypeMessage,"E")
+      copy(InTraceExec_Message,"Ressource inexistant : "ingetFullPathRes)
+      copy(InTraceExec_Needed,"oui")
+      gosub(GenTraceExec)
    }
 ENDPROC
 //
