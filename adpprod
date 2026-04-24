@@ -4862,40 +4862,22 @@ ENDPROC
 PROC(fillFdfFromIndex)
 //*******************************************************************************
 // Remplit le squelette FDF en substituant les 3 variables FicIndex.ligne.xx
-// par les valeurs lues dans le premier enregistrement du fichier index VPF
 //*******************************************************************************
 // Parameters
-//   InFillFdf_FdfSkel   : chemin complet du squelette FDF
-//   InFillFdf_VpfInd    : chemin complet du fichier index VPF
-//   InFillFdf_OutputFdf : chemin complet du FDF de sortie
-//   OutFillFdf_Resu     : oui/non
+//   InFillFdf_FdfSkel    : chemin complet du squelette FDF
+//   InFillFdf_NomDest    : valeur pour FicIndex.ligne.NomDest
+//   InFillFdf_PrenomDest : valeur pour FicIndex.ligne.PrenomDest
+//   InFillFdf_NoSinistre : valeur pour FicIndex.ligne.NoSinistre
+//   InFillFdf_OutputFdf  : chemin complet du FDF de sortie
+//   OutFillFdf_Resu      : oui/non
 //-------------------------------------------------------------------------------
 copy(OutFillFdf_Resu,"oui")
 //
-// Lire le premier enregistrement de l'index VPF
-setin(pjFdfVpfIdx,"eclatement.tab",InFillFdf_VpfInd)
-oneof(pjFdfVpfIdx,"- SET EOF VAR -")
-read(pjFdfVpfIdx,"entete")
-read(pjFdfVpfIdx,"theader")
-read(pjFdfVpfIdx,"ligne")
-read(pjFdfVpfIdx,"fonction")
-read(pjFdfVpfIdx,"calcul")
-if(pjFdfVpfIdx_eof!="0")
-   {
-      setin(pjFdfVpfIdx,"eclatement.tab","- NO IN -")
-      copy(InTraceExec_TypeMessage,"E")
-      copy(InTraceExec_Message,"fillFdfFromIndex : index VPF vide ou illisible ["InFillFdf_VpfInd"]")
-      gosub(GenTraceExec)
-      copy(OutFillFdf_Resu,"non")
-      EXITPROC
-   }
-setin(pjFdfVpfIdx,"eclatement.tab","- NO IN -")
-//
 // Charger le squelette FDF et substituer les 3 variables
 load(pjFdfBuffer,InFillFdf_FdfSkel)
-call(pjFdfBuffer,LB_FastReplace,pjFdfBuffer,"FicIndex.ligne.NomDest",pjFdfVpfIdx.ligne.NomDest)
-call(pjFdfBuffer,LB_FastReplace,pjFdfBuffer,"FicIndex.ligne.PrenomDest",pjFdfVpfIdx.ligne.PrenomDest)
-call(pjFdfBuffer,LB_FastReplace,pjFdfBuffer,"FicIndex.ligne.NoSinistre",pjFdfVpfIdx.ligne.NoSinistre)
+call(pjFdfBuffer,LB_FastReplace,pjFdfBuffer,"FicIndex.ligne.NomDest",InFillFdf_NomDest)
+call(pjFdfBuffer,LB_FastReplace,pjFdfBuffer,"FicIndex.ligne.PrenomDest",InFillFdf_PrenomDest)
+call(pjFdfBuffer,LB_FastReplace,pjFdfBuffer,"FicIndex.ligne.NoSinistre",InFillFdf_NoSinistre)
 //
 // Ecrire le FDF rempli
 setout(pjFdfOut,InFillFdf_OutputFdf)
@@ -4906,14 +4888,16 @@ ENDPROC
 //
 PROC(prefillPjForm)
 //*******************************************************************************
-// Pre-remplit un formulaire PDF via pdftk fill_form avec les donnees du VPF index
+// Pre-remplit un formulaire PDF via pdftk fill_form
 //*******************************************************************************
 // Parameters
-//   InPrefillPj_PjName   : nom de la PJ formulaire (sans chemin ni extension)
-//   InPrefillPj_FdfSkel  : chemin complet du squelette FDF (OpWDDlv/FamilleDlv/common/text/<pj>.fdf)
-//   InPrefillPj_VpfInd   : chemin complet du fichier index VPF
-//   InPrefillPj_PdftKExe : chemin complet de l'executable pdftk
-//   OutPrefillPj_Resu    : oui/non
+//   InPrefillPj_PjName    : nom de la PJ formulaire (sans chemin ni extension)
+//   InPrefillPj_FdfSkel   : chemin complet du squelette FDF (OpWDDlv/FamilleDlv/common/text/<pj>.fdf)
+//   InPrefillPj_NomDest   : valeur NomDest issue de l'index VPF courant
+//   InPrefillPj_PrenomDest: valeur PrenomDest issue de l'index VPF courant
+//   InPrefillPj_NoSinistre: valeur NoSinistre issue de l'index VPF courant
+//   InPrefillPj_PdftKExe  : chemin complet de l'executable pdftk
+//   OutPrefillPj_Resu     : oui/non
 //-------------------------------------------------------------------------------
 copy(OutPrefillPj_Resu,"oui")
 //
@@ -4932,10 +4916,12 @@ if(OutCopieFichier_Resu!="oui")
       EXITPROC
    }
 //
-// Etape 2 : Generer le FDF rempli depuis le squelette et l'index VPF
+// Etape 2 : Generer le FDF rempli depuis le squelette
 copy(pjFdfFilled,RepTravail"/"InPrefillPj_PjName"_filled.fdf")
 copy(InFillFdf_FdfSkel,InPrefillPj_FdfSkel)
-copy(InFillFdf_VpfInd,InPrefillPj_VpfInd)
+copy(InFillFdf_NomDest,InPrefillPj_NomDest)
+copy(InFillFdf_PrenomDest,InPrefillPj_PrenomDest)
+copy(InFillFdf_NoSinistre,InPrefillPj_NoSinistre)
 copy(InFillFdf_OutputFdf,pjFdfFilled)
 gosub(fillFdfFromIndex)
 if(OutFillFdf_Resu!="oui")
@@ -5161,7 +5147,9 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 						{
 							copy(InPrefillPj_PjName,ingetFullPathRes)
 							copy(InPrefillPj_FdfSkel,pdfMerge_FdfSkel)
-							copy(InPrefillPj_VpfInd,InpdfMerge_vpfIndex)
+							copy(InPrefillPj_NomDest,vpfFicIndex.ligne.NomDest)
+							copy(InPrefillPj_PrenomDest,vpfFicIndex.ligne.PrenomDest)
+							copy(InPrefillPj_NoSinistre,vpfFicIndex.ligne.NoSinistre)
 							copy(InPrefillPj_PdftKExe,PdftkFillExec)
 							gosub(prefillPjForm)
 							if(OutPrefillPj_Resu=="oui")
@@ -5209,7 +5197,9 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 								{
 									copy(InPrefillPj_PjName,ingetFullPathRes)
 									copy(InPrefillPj_FdfSkel,pdfMerge_FdfSkel)
-									copy(InPrefillPj_VpfInd,InpdfMerge_vpfIndex)
+									copy(InPrefillPj_NomDest,vpfFicIndex.ligne.NomDest)
+									copy(InPrefillPj_PrenomDest,vpfFicIndex.ligne.PrenomDest)
+									copy(InPrefillPj_NoSinistre,vpfFicIndex.ligne.NoSinistre)
 									copy(InPrefillPj_PdftKExe,PdftkFillExec)
 									gosub(prefillPjForm)
 									if(OutPrefillPj_Resu=="oui")
@@ -5267,7 +5257,9 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 								{
 									copy(InPrefillPj_PjName,ingetFullPathRes)
 									copy(InPrefillPj_FdfSkel,pdfMerge_FdfSkel)
-									copy(InPrefillPj_VpfInd,InpdfMerge_vpfIndex)
+									copy(InPrefillPj_NomDest,vpfFicIndex.ligne.NomDest)
+									copy(InPrefillPj_PrenomDest,vpfFicIndex.ligne.PrenomDest)
+									copy(InPrefillPj_NoSinistre,vpfFicIndex.ligne.NoSinistre)
 									copy(InPrefillPj_PdftKExe,PdftkFillExec)
 									gosub(prefillPjForm)
 									if(OutPrefillPj_Resu=="oui")
