@@ -4995,73 +4995,6 @@ gosub(GenTraceExec)
 ENDPROC
 //
 //
-PROC(runPrefillPjForMep)
-//*******************************************************************************
-// Detecte et pre-remplit les PJ formulaires pour les steps mep_*
-//*******************************************************************************
-// Parameters
-//   InRunPrefill_VpfInd   : nom du fichier index VPF (sans chemin, dans RepTravail)
-//   InRunPrefill_PdftKExe : chemin complet de l'executable pdftk
-//   OutRunPrefill_Resu    : oui/non
-//-------------------------------------------------------------------------------
-copy(OutRunPrefill_Resu,"oui")
-//
-copy(InTraceExec_TypeMessage,"I")
-copy(InTraceExec_Message,"runPrefillPjForMep : debut")
-gosub(GenTraceExec)
-//
-// Lire le premier enregistrement du fichier index VPF pour recuperer CodeModele
-setin(pjRunVpfIdx,"eclatement.tab",RepTravail"/"InRunPrefill_VpfInd)
-oneof(pjRunVpfIdx,"- SET EOF VAR -")
-read(pjRunVpfIdx,"entete")
-read(pjRunVpfIdx,"theader")
-read(pjRunVpfIdx,"ligne")
-read(pjRunVpfIdx,"fonction")
-read(pjRunVpfIdx,"calcul")
-copy(pjRunCodeModele,pjRunVpfIdx.ligne.CodeModele)
-setin(pjRunVpfIdx,"eclatement.tab","- NO IN -")
-//
-// Rechercher le nom de la PJ formulaire dans TabEdoc colonne 5 (PJLibelle)
-itread(pjRunPjLibelle,TabEdoc,"5",pjRunCodeModele)
-if(pjRunPjLibelle=="undefined")
-   {
-      copy(pjRunPjLibelle,"")
-   }
-//
-// Si pas de PJ formulaire configuree, rien a faire
-if(pjRunPjLibelle=="")
-   {
-      copy(InTraceExec_TypeMessage,"I")
-      copy(InTraceExec_Message,"runPrefillPjForMep : aucune PJ formulaire pour CodeModele=["pjRunCodeModele"]")
-      gosub(GenTraceExec)
-      EXITPROC
-   }
-//
-// PJ formulaire detectee : lancer le prefill
-copy(InTraceExec_TypeMessage,"I")
-copy(InTraceExec_Message,"runPrefillPjForMep : PJ formulaire ["pjRunPjLibelle"] detectee pour CodeModele=["pjRunCodeModele"]")
-gosub(GenTraceExec)
-//
-copy(InPrefillPj_PjName,pjRunPjLibelle)
-copy(InPrefillPj_FdfSkel,"/tmp/"pjRunPjLibelle".fdf")
-copy(InPrefillPj_VpfInd,RepTravail"/"InRunPrefill_VpfInd)
-copy(InPrefillPj_PdftKExe,InRunPrefill_PdftKExe)
-gosub(prefillPjForm)
-if(OutPrefillPj_Resu!="oui")
-   {
-      copy(InTraceExec_TypeMessage,"E")
-      copy(InTraceExec_Message,"runPrefillPjForMep : echec prefill pour ["pjRunPjLibelle"]")
-      gosub(GenTraceExec)
-      copy(OutRunPrefill_Resu,"non")
-      EXITPROC
-   }
-//
-copy(InTraceExec_TypeMessage,"I")
-copy(InTraceExec_Message,"runPrefillPjForMep : prefill OK pour ["pjRunPjLibelle"]")
-gosub(GenTraceExec)
-ENDPROC
-//
-//
 PROC(callPdfMerge)
 //*******************************************************************************
 // Generic Procedure to merge pdf documents
@@ -5221,6 +5154,21 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 				if(getFullPathRes_Resu=="oui")
 				{
 					copy(rspath,outgetFullPathRes)
+					copy(pdfMerge_FdfSkel,"/tmp/"ingetFullPathRes".fdf")
+					copy(pyGSFileExist_InFile,pdfMerge_FdfSkel)
+					call(pyGSFileExist_return,switchmodule,"pyGSFileExist",pyDeliveryOutils)
+					if(pyGSFileExist_Resu=="OK")
+						{
+							copy(InPrefillPj_PjName,ingetFullPathRes)
+							copy(InPrefillPj_FdfSkel,pdfMerge_FdfSkel)
+							copy(InPrefillPj_VpfInd,InpdfMerge_vpfIndex)
+							copy(InPrefillPj_PdftKExe,PdftkFillExec)
+							gosub(prefillPjForm)
+							if(OutPrefillPj_Resu=="oui")
+								{
+									copy(rspath,RepTravail"/"ingetFullPathRes".pdf")
+								}
+						}
 				}
 				else
 				{
@@ -5254,6 +5202,21 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 					gosub(getFullPathRes)
 					if(getFullPathRes_Resu=="oui")
 						{
+							copy(pdfMerge_FdfSkel,"/tmp/"ingetFullPathRes".fdf")
+							copy(pyGSFileExist_InFile,pdfMerge_FdfSkel)
+							call(pyGSFileExist_return,switchmodule,"pyGSFileExist",pyDeliveryOutils)
+							if(pyGSFileExist_Resu=="OK")
+								{
+									copy(InPrefillPj_PjName,ingetFullPathRes)
+									copy(InPrefillPj_FdfSkel,pdfMerge_FdfSkel)
+									copy(InPrefillPj_VpfInd,InpdfMerge_vpfIndex)
+									copy(InPrefillPj_PdftKExe,PdftkFillExec)
+									gosub(prefillPjForm)
+									if(OutPrefillPj_Resu=="oui")
+										{
+											copy(outgetFullPathRes,RepTravail"/"ingetFullPathRes".pdf")
+										}
+								}
 							if(buffer=="")
 							{
 								copy(buffer,outgetFullPathRes)
@@ -5297,6 +5260,21 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 					gosub(getFullPathRes)
 					if(getFullPathRes_Resu=="oui")
 						{
+							copy(pdfMerge_FdfSkel,"/tmp/"ingetFullPathRes".fdf")
+							copy(pyGSFileExist_InFile,pdfMerge_FdfSkel)
+							call(pyGSFileExist_return,switchmodule,"pyGSFileExist",pyDeliveryOutils)
+							if(pyGSFileExist_Resu=="OK")
+								{
+									copy(InPrefillPj_PjName,ingetFullPathRes)
+									copy(InPrefillPj_FdfSkel,pdfMerge_FdfSkel)
+									copy(InPrefillPj_VpfInd,InpdfMerge_vpfIndex)
+									copy(InPrefillPj_PdftKExe,PdftkFillExec)
+									gosub(prefillPjForm)
+									if(OutPrefillPj_Resu=="oui")
+										{
+											copy(outgetFullPathRes,RepTravail"/"ingetFullPathRes".pdf")
+										}
+								}
 							if(buffer=="")
 							{
 								copy(buffer,outgetFullPathRes)
@@ -11192,20 +11170,7 @@ else
    }
 //
 //========================
-//Pre-remplissage des PJ formulaires si applicable
-//========================
-copy(InRunPrefill_VpfInd,_currentVpfInd)
-copy(InRunPrefill_PdftKExe,PdftkFillExec)
-gosub(runPrefillPjForMep)
-if(OutRunPrefill_Resu!="oui")
-   {
-      copy(InTraceExec_TypeMessage,"W")
-      copy(InTraceExec_Message,"mep_visu : echec prefill PJ formulaire - merge avec PJ originale")
-      gosub(GenTraceExec)
-   }
-//
-//========================
-//Merge attached documents
+//Merge attached documents (prefill PJ formulaires integre dans pdfMerge)
 //========================
 copy(IncallPdfMerge_vpfIndex,_currentVpfInd)
 copy(IncallPdfMerge_pdfFile,_currentPdf)
