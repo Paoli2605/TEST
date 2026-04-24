@@ -4935,13 +4935,12 @@ if(OutFillFdf_Resu!="oui")
 //
 // Etape 3 : Appel pdftk fill_form -> sortie dans RepTravail/<pjname>.pdf
 copy(pjPrefillOut,RepTravail"/"InPrefillPj_PjName".pdf")
-copy(pdftk_fill_params,"")
+copy(pdftk_fill_params,"-ipdf ")
 append(pdftk_fill_params,pjFormCopy)
-append(pdftk_fill_params," fill_form ")
+append(pdftk_fill_params," -ifdf ")
 append(pdftk_fill_params,pjFdfFilled)
-append(pdftk_fill_params," output ")
+append(pdftk_fill_params," -opdf ")
 append(pdftk_fill_params,pjPrefillOut)
-append(pdftk_fill_params," flatten")
 //
 copy(InTraceExec_TypeMessage,"I")
 copy(InTraceExec_Message,"prefillPjForm pdftk : "InPrefillPj_PdftKExe" "pdftk_fill_params)

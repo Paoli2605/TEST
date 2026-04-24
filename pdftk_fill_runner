@@ -1,24 +1,85 @@
-#!/bin/sh
+#!/usr/bin/sh
+#set -x
 
-execDir=$(dirname "$0")
-PDFTK="${execDir}/pdftk/bin/pdftk"
+execDir=`dirname $0`
+prog=`basename $0 .sh`
 
-# Vérifier que pdftk existe
-if [ ! -x "$PDFTK" ]; then
-  echo "Erreur : pdftk introuvable ($PDFTK)" >&2
-  echo "exit code :1"
-  exit 1
+Help()
+{
+	echo "${prog} 1.0"
+	echo "Copyright (c) 2005 Gras Savoye. All Rights Reserved"
+	echo
+	echo "Usage: [OPTION]"
+	echo "-ipdf  Pdf form  input  file"
+	echo "-ifdf  Fdf       input  file"
+	echo "-opdf  Pdf       output file"
+	echo "-log             log    file"
+	echo "-?     Help"
+	exit -1
+}
+
+
+
+#=================
+# Main Entry Point
+#=================
+nbarg=$#
+i=0
+log="/dev/null"
+
+if [ "$nbarg" -lt "1" ]
+then
+	Help
 fi
 
-# Vérifier qu'au moins 1 argument est passé
-if [ "$#" -lt 1 ]; then
-  echo "Usage: $0 <arguments pdftk>" >&2
-  echo "exit code :1"
-  exit 1
+while [ "$i" -lt "$nbarg" ]
+do
+	argv=$1
+	shift
+	i=`expr $i + 1`
+
+	case ${argv} in
+		-ipdf) #input pdf form file
+			ipdf="${1}"
+			shift
+			i=`expr $i + 1`
+			;;
+		-ifdf) #input fdf file
+			ifdf="${1}"
+			shift
+			i=`expr $i + 1`
+			;;
+		-opdf) #output pdf file
+			opdf="${1}"
+			shift
+			i=`expr $i + 1`
+			;;
+		-log) #log file
+			log=${1}
+			shift
+			i=`expr $i + 1`
+			;;
+		*) #invalid option
+			Help
+			;;
+	esac
+done
+
+if [ "${ipdf}" = "" ] || [ "${ifdf}" = "" ] || [ "${opdf}" = "" ]
+then
+	echo "Erreur : -ipdf, -ifdf et -opdf sont obligatoires" >&2
+	Help
 fi
 
-"$PDFTK" "$@"
+execline="${execDir}/pdftk/bin/pdftk ${ipdf} fill_form ${ifdf} output ${opdf} flatten"
+
+${execline}
 ret=$?
 
-echo "exit code :${ret}"
-exit ${ret}
+if [ "${ret}" != "0" ]
+then
+	rm -f "${opdf}"
+fi
+
+echo "exit code :$ret"
+exit $ret
