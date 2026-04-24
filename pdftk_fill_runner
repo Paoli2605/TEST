@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/bin/sh
 #set -x
 
 execDir=`dirname $0`
@@ -15,7 +15,7 @@ Help()
 	echo "-opdf  Pdf       output file"
 	echo "-log             log    file"
 	echo "-?     Help"
-	exit -1
+	exit 1
 }
 
 
@@ -55,7 +55,7 @@ do
 			i=`expr $i + 1`
 			;;
 		-log) #log file
-			log=${1}
+			log="${1}"
 			shift
 			i=`expr $i + 1`
 			;;
@@ -71,15 +71,25 @@ then
 	Help
 fi
 
-execline="${execDir}/pdftk/bin/pdftk ${ipdf} fill_form ${ifdf} output ${opdf} flatten"
+PDFTK="${execDir}/pdftk/bin/pdftk"
 
-${execline}
+if [ ! -x "${PDFTK}" ]
+then
+	echo "Erreur : pdftk introuvable : ${PDFTK}" >&2
+	echo "exit code :1"
+	exit 1
+fi
+
+# stdout vers log (evite de polluer la sortie capturee par pyGSRunProcess)
+# stderr reste sur stderr du script pour remonter dans pyGSRunProcess.stderr.log
+"${PDFTK}" "${ipdf}" fill_form "${ifdf}" output "${opdf}" flatten >> "${log}"
 ret=$?
 
 if [ "${ret}" != "0" ]
 then
+	echo "Erreur : pdftk fill_form a echoue (code ${ret}) ipdf=${ipdf} ifdf=${ifdf} opdf=${opdf}" >&2
 	rm -f "${opdf}"
 fi
 
-echo "exit code :$ret"
-exit $ret
+echo "exit code :${ret}"
+exit ${ret}
