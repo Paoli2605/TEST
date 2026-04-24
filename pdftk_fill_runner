@@ -67,7 +67,7 @@ done
 
 if [ "${ipdf}" = "" ] || [ "${ifdf}" = "" ] || [ "${opdf}" = "" ]
 then
-	echo "Erreur : -ipdf, -ifdf et -opdf sont obligatoires" >&2
+	echo "Erreur : -ipdf, -ifdf et -opdf sont obligatoires"
 	Help
 fi
 
@@ -80,28 +80,19 @@ then
 	exit 1
 fi
 
-# Capture stdout+stderr pdftk dans un fichier temporaire
-pdftkout="/tmp/pdftk_prefill_$$.log"
-"${PDFTK}" "${ipdf}" fill_form "${ifdf}" output "${opdf}" flatten > "${pdftkout}" 2>&1
+# Normalise les fins de ligne (CRLF -> LF) : pdftk echoue sur les FDF Windows
+ifdf_lf="/tmp/prefill_fdf_$$"
+tr -d '\r' < "${ifdf}" > "${ifdf_lf}"
+
+"${PDFTK}" "${ipdf}" fill_form "${ifdf_lf}" output "${opdf}" flatten
 ret=$?
 
-# Copie dans le log applicatif si fourni
-cat "${pdftkout}" >> "${log}"
+rm -f "${ifdf_lf}"
 
 if [ "${ret}" != "0" ]
 then
-	# Sortie sur stdout : remonte dans le ValueError de pyGSRunProcess
-	echo "pdftk fill_form ERREUR code=${ret}"
-	echo "pdftk ipdf=${ipdf}"
-	echo "pdftk ifdf=${ifdf}"
-	echo "pdftk opdf=${opdf}"
-	echo "pdftk output=$(cat ${pdftkout})"
-	# Conserve une copie consultable manuellement
-	cp "${pdftkout}" "/tmp/pdftk_prefill_last_error.log" 2>/dev/null
 	rm -f "${opdf}"
 fi
-
-rm -f "${pdftkout}"
 
 echo "exit code :${ret}"
 exit ${ret}
