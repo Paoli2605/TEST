@@ -75,21 +75,33 @@ PDFTK="${execDir}/pdftk/bin/pdftk"
 
 if [ ! -x "${PDFTK}" ]
 then
-	echo "Erreur : pdftk introuvable : ${PDFTK}" >&2
+	echo "Erreur : pdftk introuvable : ${PDFTK}"
 	echo "exit code :1"
 	exit 1
 fi
 
-# stdout vers log (evite de polluer la sortie capturee par pyGSRunProcess)
-# stderr reste sur stderr du script pour remonter dans pyGSRunProcess.stderr.log
-"${PDFTK}" "${ipdf}" fill_form "${ifdf}" output "${opdf}" flatten >> "${log}"
+# Capture stdout+stderr pdftk dans un fichier temporaire
+pdftkout="/tmp/pdftk_prefill_$$.log"
+"${PDFTK}" "${ipdf}" fill_form "${ifdf}" output "${opdf}" flatten > "${pdftkout}" 2>&1
 ret=$?
+
+# Copie dans le log applicatif si fourni
+cat "${pdftkout}" >> "${log}"
 
 if [ "${ret}" != "0" ]
 then
-	echo "Erreur : pdftk fill_form a echoue (code ${ret}) ipdf=${ipdf} ifdf=${ifdf} opdf=${opdf}" >&2
+	# Sortie sur stdout : remonte dans le ValueError de pyGSRunProcess
+	echo "pdftk fill_form ERREUR code=${ret}"
+	echo "pdftk ipdf=${ipdf}"
+	echo "pdftk ifdf=${ifdf}"
+	echo "pdftk opdf=${opdf}"
+	echo "pdftk output=$(cat ${pdftkout})"
+	# Conserve une copie consultable manuellement
+	cp "${pdftkout}" "/tmp/pdftk_prefill_last_error.log" 2>/dev/null
 	rm -f "${opdf}"
 fi
+
+rm -f "${pdftkout}"
 
 echo "exit code :${ret}"
 exit ${ret}
