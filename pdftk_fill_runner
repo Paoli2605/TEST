@@ -1,8 +1,24 @@
-#!/bin/bash
-# Wrapper pdftk pour pyGSRunProcess
-# Exécute pdftk avec les paramètres passés et émet "exit code :N"
-# en dernière ligne de stdout, format attendu par pyGSRunProcess.
-pdftk "$@"
-RC=$?
-echo "exit code :${RC}"
-exit ${RC}
+#!/bin/sh
+
+execDir=$(dirname "$0")
+PDFTK="${execDir}/pdftk/bin/pdftk"
+
+# Vérifier que pdftk existe
+if [ ! -x "$PDFTK" ]; then
+  echo "Erreur : pdftk introuvable ($PDFTK)" >&2
+  echo "exit code :1"
+  exit 1
+fi
+
+# Vérifier qu'au moins 1 argument est passé
+if [ "$#" -lt 1 ]; then
+  echo "Usage: $0 <arguments pdftk>" >&2
+  echo "exit code :1"
+  exit 1
+fi
+
+"$PDFTK" "$@"
+ret=$?
+
+echo "exit code :${ret}"
+exit ${ret}
