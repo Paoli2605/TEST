@@ -4989,9 +4989,6 @@ PROC(callPdfMerge)
 //   IncallPdfMerge_vpfIndex  : vpf index file attached to pdf document
 //   IncallPdfMerge_pdfFile   : main pdf document
 //   IncallPdfMerge_RepSortie : final pdf document directory
-//   IncallPdfMerge_NomDest   : (optionnel) NomDest du destinataire pour prefill PJ formulaires
-//   IncallPdfMerge_PrenomDest: (optionnel) PrenomDest du destinataire pour prefill PJ formulaires
-//   IncallPdfMerge_NoSinistre: (optionnel) NoSinistre pour prefill PJ formulaires
 //-------------------------------------------------------------------------------
 //
 copy(callPdfMerge_Resu,"oui")
@@ -5001,9 +4998,6 @@ copy(InTraceExec_Message,"callPdfMerge")
 gosub(GenTraceExec)
 //
 copy(InpdfMerge_vpfIndex,RepTravail"/"IncallPdfMerge_vpfIndex)
-copy(InpdfMerge_NomDest,IncallPdfMerge_NomDest)
-copy(InpdfMerge_PrenomDest,IncallPdfMerge_PrenomDest)
-copy(InpdfMerge_NoSinistre,IncallPdfMerge_NoSinistre)
 //copy(InTraceExec_TypeMessage,"I")
 //copy(InTraceExec_Message,"InpdfMerge_vpfIndex : "InpdfMerge_vpfIndex)
 //gosub(GenTraceExec)
@@ -5126,21 +5120,6 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
       calc(_nbpageoffset=vpfFicIndex.ligne.nbpageoffset)
       if(_nbpageoffset>"0")
 	  {
-		// Données destinataire pour prefill PJ formulaires
-		// Priorité aux valeurs passées explicitement (mep_ged, mep_email),
-		// fallback sur le VPF courant (mep_visu, mep_imp, etc.)
-		if(InpdfMerge_NomDest!="")
-			{
-				copy(_pjNomDest,InpdfMerge_NomDest)
-				copy(_pjPrenomDest,InpdfMerge_PrenomDest)
-				copy(_pjNoSinistre,InpdfMerge_NoSinistre)
-			}
-		else
-			{
-				copy(_pjNomDest,vpfFicIndex.ligne.NomDest)
-				copy(_pjPrenomDest,vpfFicIndex.ligne.PrenomDest)
-				copy(_pjNoSinistre,vpfFicIndex.ligne.NoSinistre)
-			}
 		//fondpage
 		copy(rspath,vpfFicIndex.ligne.FondPage)
 		//Try to get fondpage from configuration table
@@ -5168,9 +5147,9 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 						{
 							copy(InPrefillPj_PjName,ingetFullPathRes)
 							copy(InPrefillPj_FdfSkel,pdfMerge_FdfSkel)
-							copy(InPrefillPj_NomDest,_pjNomDest)
-							copy(InPrefillPj_PrenomDest,_pjPrenomDest)
-							copy(InPrefillPj_NoSinistre,_pjNoSinistre)
+							copy(InPrefillPj_NomDest,vpfFicIndex.ligne.NomDest)
+							copy(InPrefillPj_PrenomDest,vpfFicIndex.ligne.PrenomDest)
+							copy(InPrefillPj_NoSinistre,vpfFicIndex.ligne.NoSinistre)
 							copy(InPrefillPj_PdftKExe,PdftkFillExec)
 							gosub(prefillPjForm)
 							if(OutPrefillPj_Resu=="oui")
@@ -5218,9 +5197,9 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 								{
 									copy(InPrefillPj_PjName,ingetFullPathRes)
 									copy(InPrefillPj_FdfSkel,pdfMerge_FdfSkel)
-									copy(InPrefillPj_NomDest,_pjNomDest)
-									copy(InPrefillPj_PrenomDest,_pjPrenomDest)
-									copy(InPrefillPj_NoSinistre,_pjNoSinistre)
+									copy(InPrefillPj_NomDest,vpfFicIndex.ligne.NomDest)
+									copy(InPrefillPj_PrenomDest,vpfFicIndex.ligne.PrenomDest)
+									copy(InPrefillPj_NoSinistre,vpfFicIndex.ligne.NoSinistre)
 									copy(InPrefillPj_PdftKExe,PdftkFillExec)
 									gosub(prefillPjForm)
 									if(OutPrefillPj_Resu=="oui")
@@ -5278,9 +5257,9 @@ while((vpfFicIndex_eof==0)&&(pdfMerge_LoopOut=="false"))
 								{
 									copy(InPrefillPj_PjName,ingetFullPathRes)
 									copy(InPrefillPj_FdfSkel,pdfMerge_FdfSkel)
-									copy(InPrefillPj_NomDest,_pjNomDest)
-									copy(InPrefillPj_PrenomDest,_pjPrenomDest)
-									copy(InPrefillPj_NoSinistre,_pjNoSinistre)
+									copy(InPrefillPj_NomDest,vpfFicIndex.ligne.NomDest)
+									copy(InPrefillPj_PrenomDest,vpfFicIndex.ligne.PrenomDest)
+									copy(InPrefillPj_NoSinistre,vpfFicIndex.ligne.NoSinistre)
 									copy(InPrefillPj_PdftKExe,PdftkFillExec)
 									gosub(prefillPjForm)
 									if(OutPrefillPj_Resu=="oui")
@@ -7704,9 +7683,6 @@ if(OutPresenceFichier_Resu="oui")
                         copy(IncallPdfMerge_vpfIndex,_currentVpfInd)
                         copy(IncallPdfMerge_pdfFile,NomFicDocEmail)
                         copy(IncallPdfMerge_RepSortie,RepSortieEmail)
-                        copy(IncallPdfMerge_NomDest,FicIndex.ligne.NomDest)
-                        copy(IncallPdfMerge_PrenomDest,FicIndex.ligne.PrenomDest)
-                        copy(IncallPdfMerge_NoSinistre,FicIndex.ligne.NoSinistre)
                         gosub(callPdfMerge)
 						
 						copy(InTraceExec_TypeMessage,"I")
@@ -10303,10 +10279,7 @@ while(FicIndex_eof==0)
 			copy(InTraceExec_TypeMessage,"I")
             copy(InTraceExec_Message,"IncallPdfMerge_RepSortie : "IncallPdfMerge_RepSortie)
             gosub(GenTraceExec)
-
-            copy(IncallPdfMerge_NomDest,FicIndex.ligne.NomDest)
-            copy(IncallPdfMerge_PrenomDest,FicIndex.ligne.PrenomDest)
-            copy(IncallPdfMerge_NoSinistre,FicIndex.ligne.NoSinistre)
+			
             gosub(callPdfMerge)
             if(callPdfMerge_Resu!="oui")
                {
@@ -11193,9 +11166,6 @@ else
 //========================
 copy(IncallPdfMerge_vpfIndex,_currentVpfInd)
 copy(IncallPdfMerge_pdfFile,_currentPdf)
-copy(IncallPdfMerge_NomDest,"")
-copy(IncallPdfMerge_PrenomDest,"")
-copy(IncallPdfMerge_NoSinistre,"")
 copy(IncallPdfMerge_RepSortie,RepTravail)
 gosub(callPdfMerge)
 if(callPdfMerge_Resu!="oui")
